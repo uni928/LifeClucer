@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>2人用ライフポイント計算機</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      background-color: #f2f2f2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2em;
+    }
+    .player {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 1em;
+      width: 340px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .life {
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
+      text-align: center;
+    }
+    .buttons, .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1em;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 0.4em 0.8em;
+      border: none;
+      border-radius: 6px;
+      background-color: #2196f3;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1976d2;
+    }
+    .reset-button {
+      background-color: #f44336;
+    }
+    .reset-button:hover {
+      background-color: #d32f2f;
+    }
+    .undo-button {
+      background-color: #ff9800;
+    }
+    .undo-button:hover {
+      background-color: #ef6c00;
+    }
+    .history {
+      height: 150px;
+      overflow-y: auto;
+      border-top: 1px solid #ccc;
+      padding-top: 0.5em;
+      font-size: 0.9em;
+    }
+    .history-entry {
+      border-bottom: 1px solid #eee;
+      padding: 0.3em 0;
+    }
+    h2 {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player" id="player1">
+    <h2>プレイヤー1</h2>
+    <div class="life" id="life1">8000</div>
+    <div class="buttons">
+      <div class="buttons minus">
+  <button onclick="adjustLife(1, -100)">-100</button>
+  <button onclick="adjustLife(1, -500)">-500</button>
+  <button onclick="adjustLife(1, -1000)">-1000</button>
+</div>
+<div class="buttons plus">
+  <button onclick="adjustLife(1, 100)">+100</button>
+  <button onclick="adjustLife(1, 500)">+500</button>
+  <button onclick="adjustLife(1, 1000)">+1000</button>
+</div>
+    </div>
+    <div class="actions">
+      <button class="undo-button" onclick="undo(1)">1つ戻す</button>
+      <button class="reset-button" onclick="resetLife(1)">リセット</button>
+    </div>
+    <div class="history" id="history1">
+      <strong>履歴:</strong>
+    </div>
+  </div>
+
+  <div class="player" id="player2">
+    <h2>プレイヤー2</h2>
+    <div class="life" id="life2">8000</div>
+    <div class="buttons">
+      <div class="buttons minus">
+  <button onclick="adjustLife(2, -100)">-100</button>
+  <button onclick="adjustLife(2, -500)">-500</button>
+  <button onclick="adjustLife(2, -1000)">-1000</button>
+</div>
+<div class="buttons plus">
+  <button onclick="adjustLife(2, 100)">+100</button>
+  <button onclick="adjustLife(2, 500)">+500</button>
+  <button onclick="adjustLife(2, 1000)">+1000</button>
+</div>
+    </div>
+    <div class="actions">
+      <button class="undo-button" onclick="undo(2)">1つ戻す</button>
+      <button class="reset-button" onclick="resetLife(2)">リセット</button>
+    </div>
+    <div class="history" id="history2">
+      <strong>履歴:</strong>
+    </div>
+  </div>
+
+  <script>
+    const GROUP_TIMEOUT = 1100;
+
+    const players = {
+      1: { life: 8000, lastTime: 0, currentGroup: null, history: [] },
+      2: { life: 8000, lastTime: 0, currentGroup: null, history: [] }
+    };
+
+    function updateDisplay(p) {
+      document.getElementById(`life${p}`).textContent = players[p].life;
+    }
+
+    function adjustLife(p, amount) {
+      const now = Date.now();
+      const player = players[p];
+      player.life += amount;
+      updateDisplay(p);
+
+      if (!player.currentGroup || now - player.lastTime > GROUP_TIMEOUT) {
+        player.currentGroup = {
+          time: now,
+          delta: amount,
+          before: player.life - amount
+        };
+        player.history.push(player.currentGroup);
+        addHistoryEntry(p, player.currentGroup);
+      } else {
+        player.currentGroup.delta += amount;
+        updateLastHistoryEntry(p, player.currentGroup);
+      }
+
+      player.lastTime = now;
+    }
+
+    function addHistoryEntry(p, entry) {
+      const div = document.createElement('div');
+      div.className = 'history-entry';
+      div.dataset.time = entry.time;
+      div.textContent = `変更: ${entry.delta > 0 ? '+' : ''}${entry.delta} → 現在: ${players[p].life}`;
+      document.getElementById(`history${p}`).prepend(div);
+    }
+
+    function updateLastHistoryEntry(p, entry) {
+      const hist = document.getElementById(`history${p}`);
+      const latest = hist.querySelector(`.history-entry[data-time="${entry.time}"]`);
+      if (latest) {
+        latest.textContent = `変更: ${entry.delta > 0 ? '+' : ''}${entry.delta} → 現在: ${players[p].life}`;
+      }
+    }
+
+    function undo(p) {
+      const player = players[p];
+      if (player.history.length === 0) return;
+      const last = player.history.pop();
+      player.life = last.before;
+      updateDisplay(p);
+      const hist = document.getElementById(`history${p}`);
+      const entry = hist.querySelector(`.history-entry[data-time="${last.time}"]`);
+      if (entry) entry.remove();
+      player.currentGroup = null;
+      player.lastTime = 0;
+    }
+
+    function resetLife(p) {
+      players[p].life = 8000;
+      players[p].history = [];
+      players[p].currentGroup = null;
+      players[p].lastTime = 0;
+      updateDisplay(p);
+      document.getElementById(`history${p}`).innerHTML = '<strong>履歴:</strong>';
+    }
+
+    // 初期表示
+    updateDisplay(1);
+    updateDisplay(2);
+  </script>
+
+</body>
+</html>
