@@ -159,7 +159,7 @@
     <div class="actions">
       <button class="undo-button" onclick="undo(${p})">1つ戻す</button>
       <button class="half-button" onclick="halfLife(${p})">半減</button>
-      <button class="reset-button" onclick="resetLife(${p})">両者リセット</button>
+      <button class="reset-button" onclick="resetLife(${p})">リセット</button>
     </div>
     <div class="history" id="history${p}"><strong>履歴:</strong></div>
   </div>`;
@@ -228,6 +228,20 @@
   }
 
   function resetLife(p) {
+    const pl = players[p];
+    const before = pl.life;
+    const after = 8000;
+    players[p].life = 8000;
+    players[p].input = '';
+    players[p].sign = '-';
+    players[p].history = [];
+    pl.history.push({ delta: 8000 - before, before: before});
+    //addHistoryEntry(p, 8000);
+    document.getElementById(`history${p}`).innerHTML = '<strong>履歴:</strong>';
+    updateDisplays(p);
+  }
+
+  function resetLife2() {
     [1, 2].forEach(i => {
     const pl = players[i];
     const before = pl.life;
@@ -277,6 +291,19 @@
   updateDisplays(1);
   updateDisplays(2);
 </script>
+<div style="width: 100%; text-align: center; margin-top: 1em;">
+  <button onclick="resetLife2()" style="
+    font-size: 1.1em;
+    padding: 0.5em 1em;
+    background: #e53935;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  ">
+    両者リセット
+  </button>
+</div>
 <div class="instructions">
   <h3>操作方法</h3>
   <ul>
@@ -292,7 +319,7 @@
     <li>「←」ボタンで入力を1桁ずつ削除できます。</li>
     <li>「半減」はライフを半分（小数点切り上げ）にします。</li>
     <li>「1つ戻す」で直前の操作を取り消せます。</li>
-    <li>「リセット」で両者のライフを8000に戻し、履歴を消去します。</li>
+    <li>「リセット」でライフを8000に戻し、履歴を消去します。</li>
     <li>「リセット」を押すと、リセット前のライフ値のみが内部的に履歴として保存されます。</li>
   </ul>
 </div>
