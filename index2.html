@@ -228,12 +228,17 @@
   }
 
   function resetLife(p) {
+    const pl = players[p];
+    const before = pl.life;
+    const after = 8000;
     players[p].life = 8000;
     players[p].input = '';
     players[p].sign = '-';
     players[p].history = [];
-    updateDisplays(p);
+    pl.history.push({ delta: 8000 - before, before: before});
+    //addHistoryEntry(p, 8000);
     document.getElementById(`history${p}`).innerHTML = '<strong>履歴:</strong>';
+    updateDisplays(p);
   }
 
   function undo(p) {
