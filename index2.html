@@ -113,6 +113,29 @@
     h2 {
       text-align: center;
     }
+.instructions {
+  max-width: 700px;
+  margin: 2em auto 0;
+  padding: 1em;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95em;
+  line-height: 1.6;
+  box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+}
+.instructions h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.2em;
+}
+.instructions ul {
+  padding-left: 1.2em;
+  margin: 0.5em 0;
+}
+.instructions li {
+  margin-bottom: 0.4em;
+}
   </style>
 </head>
 <body>
@@ -247,6 +270,24 @@
   updateDisplays(1);
   updateDisplays(2);
 </script>
+<div class="instructions">
+  <h3>操作方法</h3>
+  <ul>
+    <li>数字を2桁入力すると「-XX00」のようにライフが減ります。</li>
+    <li>先に「+」ボタンを押すと加算モードになります（例: +12 → +1200）。</li>
+    <li>「0」で始まる入力は桁を指定します：
+      <ul>
+        <li>例：<code>08</code> → <code>-800</code></li>
+        <li>例：<code>004</code> → <code>-40</code></li>
+        <li>例：<code>0003</code> → <code>-3</code></li>
+      </ul>
+    </li>
+    <li>「←」ボタンで入力を1桁ずつ削除できます。</li>
+    <li>「半減」はライフを半分（小数点切り上げ）にします。</li>
+    <li>「1つ戻す」で直前の操作を取り消せます。</li>
+    <li>「リセット」でライフを8000に戻し、履歴を消去します。</li>
+  </ul>
+</div>
 
 </body>
 </html>
