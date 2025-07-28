@@ -228,17 +228,19 @@
   }
 
   function resetLife(p) {
-    const pl = players[p];
+    [1, 2].forEach(i => {
+    const pl = players[i];
     const before = pl.life;
     const after = 8000;
-    players[p].life = 8000;
-    players[p].input = '';
-    players[p].sign = '-';
-    players[p].history = [];
+    players[i].life = 8000;
+    players[i].input = '';
+    players[i].sign = '-';
+    players[i].history = [];
     pl.history.push({ delta: 8000 - before, before: before});
     //addHistoryEntry(p, 8000);
-    document.getElementById(`history${p}`).innerHTML = '<strong>履歴:</strong>';
-    updateDisplays(p);
+    document.getElementById(`history${i}`).innerHTML = '<strong>履歴:</strong>';
+    updateDisplays(i);
+    });
   }
 
   function undo(p) {
@@ -290,7 +292,7 @@
     <li>「←」ボタンで入力を1桁ずつ削除できます。</li>
     <li>「半減」はライフを半分（小数点切り上げ）にします。</li>
     <li>「1つ戻す」で直前の操作を取り消せます。</li>
-    <li>「リセット」でライフを8000に戻し、履歴を消去します。</li>
+    <li>「リセット」で両者のライフを8000に戻し、履歴を消去します。</li>
     <li>「リセット」を押すと、リセット前のライフ値のみが内部的に履歴として保存されます。</li>
   </ul>
 </div>
