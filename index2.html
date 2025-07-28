@@ -228,6 +228,8 @@
   }
 
   function resetLife(p) {
+    if (!confirm('リセットしますか？')) return;
+
     const pl = players[p];
     const before = pl.life;
     const after = 8000;
