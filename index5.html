@@ -1441,6 +1441,52 @@
     updateDisplays(2);
     restoreRealtimeState();
     window.addEventListener("pagehide", saveRealtimeState);
+
+    // 15秒ごとに現在の状態と最終保存時刻を更新します。
+    const REALTIME_SAVE_INTERVAL_MS = 15 * 1000;
+
+    let realtimeSaveTimer = null;
+    let realtimeSaveRunning = false;
+
+    async function updateRealtimeSaveHeartbeat() {
+      // 保存処理の重複実行を防ぎます。
+      if (realtimeSaveRunning) return;
+
+      realtimeSaveRunning = true;
+
+      try {
+        // saveRealtimeState() 内で savedAt: Date.now() も更新されます。
+        await saveRealtimeState();
+      } catch (error) {
+        console.warn("定期リアルタイムセーブに失敗しました。", error);
+      } finally {
+        realtimeSaveRunning = false;
+      }
+    }
+
+    function startRealtimeSaveHeartbeat() {
+      if (realtimeSaveTimer !== null) return;
+
+      realtimeSaveTimer = window.setInterval(
+        updateRealtimeSaveHeartbeat,
+        REALTIME_SAVE_INTERVAL_MS
+      );
+    }
+
+    // ページ表示中は15秒ごとに最終保存時刻を更新します。
+    startRealtimeSaveHeartbeat();
+
+    // バックグラウンドから戻った直後にも保存します。
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        updateRealtimeSaveHeartbeat();
+      }
+    });
+
+    // ブラウザの「戻る」などでページが再表示された場合にも保存します。
+    window.addEventListener("pageshow", () => {
+      updateRealtimeSaveHeartbeat();
+    });
   </script>
 </body>
 </html>
