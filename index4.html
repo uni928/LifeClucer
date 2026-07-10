@@ -10,7 +10,7 @@
   <meta property="og:description" content="遊戯王のLP管理を効率化。直感的・簡単・素早い操作でデュエルをサポート！" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="遊戯王ライフ計算機" />
-  <title>ライフ計算機・遊戯王専用（ライト）</title>
+  <title>ライフ計算機・遊戯王専用（スマホ1画面ライト）</title>
 
   <style>
     @layer base, layout, components, states, responsive;
@@ -645,6 +645,231 @@
       }
     }
   </style>
+
+  <style>
+    @layer compactMobile {
+      @media (max-width: 780px) {
+        body {
+          min-height: 100dvh;
+          padding: 8px;
+          align-items: stretch;
+        }
+
+        .app-shell {
+          width: 100%;
+        }
+
+        .hero {
+          margin-bottom: 8px;
+        }
+
+        .hero__eyebrow,
+        .hero p,
+        .instructions {
+          display: none;
+        }
+
+        .hero h1 {
+          font-size: 1.15rem;
+          line-height: 1.1;
+        }
+
+        .players {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+          align-items: stretch;
+        }
+
+        .player {
+          padding: 8px;
+          border-radius: 14px;
+          box-shadow: 0 8px 24px rgba(57, 83, 128, 0.14);
+        }
+
+        .player::before {
+          height: 3px;
+        }
+
+        .player::after {
+          width: 110px;
+          height: 110px;
+          top: -48px;
+          right: -40px;
+          filter: blur(18px);
+        }
+
+        .player__header {
+          margin-bottom: 2px;
+          gap: 6px;
+        }
+
+        .player__title {
+          gap: 5px;
+          font-size: 0.68rem;
+          letter-spacing: 0;
+        }
+
+        .player__badge {
+          width: 22px;
+          height: 22px;
+          border-radius: 7px;
+          font-size: 0.7rem;
+        }
+
+        .player__label,
+        .life-caption {
+          display: none;
+        }
+
+        .life-wrap {
+          padding: 4px 0 6px;
+        }
+
+        .life {
+          font-size: clamp(2.25rem, 13vw, 3.2rem);
+          letter-spacing: -0.06em;
+        }
+
+        .display {
+          min-height: 34px;
+          margin-bottom: 6px;
+          padding: 3px 4px 3px 8px;
+          border-radius: 10px;
+          gap: 4px;
+        }
+
+        .display__value {
+          font-size: 1rem;
+        }
+
+        .backspace {
+          width: 30px;
+          height: 28px;
+          border-radius: 8px;
+          font-size: 0.8rem;
+        }
+
+        .buttons {
+          gap: 4px;
+        }
+
+        .key {
+          min-height: 36px;
+          border-radius: 9px;
+          font-size: 1rem;
+          box-shadow:
+            0 3px 8px rgba(57, 83, 128, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        }
+
+        .actions {
+          gap: 4px;
+          margin-top: 6px;
+        }
+
+        .action-button {
+          min-height: 31px;
+          padding: 3px 2px;
+          border-radius: 8px;
+          font-size: 0.58rem;
+          line-height: 1.15;
+        }
+
+        .history {
+          display: none;
+        }
+
+        .global-actions {
+          margin: 8px 0 0;
+        }
+
+        .global-reset {
+          min-height: 36px;
+          padding: 0 16px;
+          font-size: 0.72rem;
+          box-shadow: 0 6px 16px rgba(190, 48, 65, 0.16);
+        }
+      }
+
+      @media (max-width: 380px) {
+        body {
+          padding: 5px;
+        }
+
+        .hero {
+          margin-bottom: 5px;
+        }
+
+        .hero h1 {
+          font-size: 1rem;
+        }
+
+        .players {
+          gap: 5px;
+        }
+
+        .player {
+          padding: 6px;
+          border-radius: 12px;
+        }
+
+        .life {
+          font-size: clamp(2rem, 12vw, 2.7rem);
+        }
+
+        .key {
+          min-height: 33px;
+          font-size: 0.92rem;
+        }
+
+        .action-button {
+          min-height: 29px;
+          font-size: 0.53rem;
+        }
+
+        .global-actions {
+          margin-top: 5px;
+        }
+
+        .global-reset {
+          min-height: 32px;
+        }
+      }
+
+      @media (max-height: 700px) and (max-width: 780px) {
+        .hero {
+          display: none;
+        }
+
+        .player {
+          padding-top: 6px;
+          padding-bottom: 6px;
+        }
+
+        .life-wrap {
+          padding: 2px 0 4px;
+        }
+
+        .life {
+          font-size: clamp(2rem, 11vw, 2.8rem);
+        }
+
+        .key {
+          min-height: 32px;
+        }
+
+        .action-button {
+          min-height: 27px;
+        }
+
+        .global-reset {
+          min-height: 30px;
+        }
+      }
+    }
+  </style>
+
 </head>
 
 <body>
