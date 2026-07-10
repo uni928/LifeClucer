@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#edf4ff" />
+  <meta name="description" content="遊戯王専用のライフポイント計算機。直感的な操作で8000からのLP計算を高速化します。" />
+  <meta name="keywords" content="遊戯王, ライフポイント, ライフ計算機, デュエル, LP, Yu-Gi-Oh, Life Point Calculator" />
+  <meta property="og:title" content="ライフ計算機・遊戯王専用" />
+  <meta property="og:description" content="遊戯王のLP管理を効率化。直感的・簡単・素早い操作でデュエルをサポート！" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="遊戯王ライフ計算機" />
+  <title>ライフ計算機・遊戯王専用（ライト）</title>
+
+  <style>
+    @layer base, layout, components, states, responsive;
+
+    @layer base {
+      :root {
+        color-scheme: light;
+        --bg-deep: #edf4ff;
+        --bg-mid: #f7fbff;
+        --surface: rgba(255, 255, 255, 0.94);
+        --surface-strong: rgba(255, 255, 255, 0.98);
+        --surface-soft: rgba(31, 64, 120, 0.06);
+        --line: rgba(41, 72, 125, 0.15);
+        --line-strong: rgba(41, 72, 125, 0.24);
+        --text: #17233a;
+        --text-muted: #66758f;
+        --gold: #d89a16;
+        --gold-soft: #9a6900;
+        --blue: #3c8dff;
+        --cyan: #4ad7ff;
+        --red: #ff5d6c;
+        --green: #4bd59b;
+        --purple: #9b78ff;
+        --orange: #ff9f43;
+        --shadow-lg: 0 24px 60px rgba(57, 83, 128, 0.18);
+        --shadow-md: 0 14px 34px rgba(57, 83, 128, 0.14);
+        --radius-xl: 26px;
+        --radius-lg: 18px;
+        --radius-md: 13px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: var(--bg-deep);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding:
+          max(24px, env(safe-area-inset-top))
+          max(18px, env(safe-area-inset-right))
+          max(36px, env(safe-area-inset-bottom))
+          max(18px, env(safe-area-inset-left));
+        overflow-x: hidden;
+        font-family:
+          "Inter",
+          "Noto Sans JP",
+          "Yu Gothic UI",
+          "Yu Gothic",
+          "Hiragino Kaku Gothic ProN",
+          sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 8%, rgba(60, 141, 255, 0.18), transparent 31rem),
+          radial-gradient(circle at 88% 20%, rgba(155, 120, 255, 0.14), transparent 29rem),
+          linear-gradient(145deg, var(--bg-deep), var(--bg-mid) 55%, #ffffff);
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        pointer-events: none;
+        content: "";
+        opacity: 0.42;
+        background-image:
+          linear-gradient(rgba(37, 81, 150, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(37, 81, 150, 0.04) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: linear-gradient(to bottom, black, transparent 90%);
+      }
+
+      button {
+        min-width: 0;
+        font: inherit;
+      }
+
+      button:focus-visible {
+        outline: 3px solid rgba(74, 215, 255, 0.72);
+        outline-offset: 3px;
+      }
+
+      code {
+        padding: 0.12em 0.4em;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        color: var(--gold-soft);
+        background: rgba(255, 255, 255, 0.065);
+        font-family: "Consolas", "SFMono-Regular", monospace;
+      }
+    }
+
+    @layer layout {
+      .app-shell {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+      }
+
+      .hero {
+        position: relative;
+        margin-bottom: 24px;
+        text-align: center;
+      }
+
+      .hero__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 10px;
+        padding: 7px 12px;
+        border: 1px solid rgba(216, 154, 22, 0.28);
+        border-radius: 999px;
+        color: var(--gold-soft);
+        background: rgba(241, 199, 91, 0.14);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+      }
+
+      .hero__eyebrow::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        content: "";
+        background: var(--gold);
+        box-shadow: 0 0 14px rgba(241, 199, 91, 0.8);
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(1.65rem, 4vw, 2.6rem);
+        line-height: 1.15;
+        letter-spacing: 0.03em;
+      }
+
+      .hero p {
+        margin: 10px auto 0;
+        max-width: 640px;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+        line-height: 1.7;
+      }
+
+      .players {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+        align-items: start;
+      }
+
+      .global-actions {
+        display: flex;
+        justify-content: center;
+        margin: 24px 0;
+      }
+    }
+
+    @layer components {
+      .player {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background:
+          linear-gradient(155deg, rgba(255, 255, 255, 0.9), transparent 48%),
+          var(--surface);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(18px);
+      }
+
+      .player::before {
+        position: absolute;
+        inset: 0 0 auto;
+        z-index: -1;
+        height: 5px;
+        content: "";
+        background: linear-gradient(90deg, var(--player-accent), var(--player-accent-2));
+      }
+
+      .player::after {
+        position: absolute;
+        top: -90px;
+        right: -70px;
+        z-index: -1;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        content: "";
+        opacity: 0.18;
+        background: var(--player-accent);
+        filter: blur(30px);
+      }
+
+      .player--1 {
+        --player-accent: var(--blue);
+        --player-accent-2: var(--cyan);
+      }
+
+      .player--2 {
+        --player-accent: var(--purple);
+        --player-accent-2: #ff7bc6;
+      }
+
+      .player__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 8px;
+      }
+
+      .player__title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.06em;
+      }
+
+      .player__badge {
+        display: grid;
+        flex: 0 0 auto;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        background: linear-gradient(145deg, var(--player-accent), var(--player-accent-2));
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--player-accent) 35%, transparent);
+        font-size: 0.85rem;
+        font-weight: 900;
+      }
+
+      .player__label {
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+      }
+
+      .life-wrap {
+        padding: 10px 0 16px;
+        text-align: center;
+      }
+
+      .life-caption {
+        margin-bottom: 2px;
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+      }
+
+      .life {
+        overflow-wrap: anywhere;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+        font-size: clamp(3.45rem, 8vw, 5.3rem);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.055em;
+        text-shadow:
+          0 0 24px color-mix(in srgb, var(--player-accent) 34%, transparent),
+          0 8px 24px rgba(57, 83, 128, 0.18);
+      }
+
+      .display {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        min-height: 58px;
+        margin-bottom: 13px;
+        padding: 8px 9px 8px 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgba(238, 244, 255, 0.92);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .display__value {
+        min-width: 0;
+        color: var(--gold-soft);
+        font-variant-numeric: tabular-nums;
+        font-size: 1.65rem;
+        font-weight: 850;
+        letter-spacing: 0.04em;
+        text-align: center;
+      }
+
+      .backspace {
+        display: grid;
+        width: 46px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--text);
+        background: rgba(49, 85, 145, 0.08);
+        cursor: pointer;
+        transition: transform 120ms ease, background 120ms ease;
+      }
+
+      .backspace:hover {
+        background: rgba(49, 85, 145, 0.14);
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .key {
+        position: relative;
+        min-height: 58px;
+        border: 1px solid rgba(49, 85, 145, 0.13);
+        border-radius: 15px;
+        color: var(--text);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(238, 244, 255, 0.96)),
+          #eef4ff;
+        box-shadow:
+          0 8px 16px rgba(57, 83, 128, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.95);
+        cursor: pointer;
+        font-size: 1.34rem;
+        font-weight: 850;
+        transition:
+          transform 110ms ease,
+          border-color 110ms ease,
+          background 110ms ease,
+          box-shadow 110ms ease;
+      }
+
+      .key:hover {
+        border-color: color-mix(in srgb, var(--player-accent) 48%, transparent);
+        background:
+          linear-gradient(180deg, #ffffff, #e8f1ff),
+          #edf4ff;
+        box-shadow:
+          0 10px 22px rgba(57, 83, 128, 0.16),
+          0 0 0 1px color-mix(in srgb, var(--player-accent) 20%, transparent);
+      }
+
+      .key:active,
+      .backspace:active,
+      .action-button:active,
+      .global-reset:active {
+        transform: translateY(2px) scale(0.985);
+      }
+
+      .sign-button {
+        color: #7d4a00;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.11), transparent),
+          rgba(255, 214, 153, 0.9);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 13px;
+      }
+
+      .action-button {
+        min-height: 45px;
+        padding: 8px 5px;
+        border: 1px solid transparent;
+        border-radius: 13px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 850;
+        transition: transform 110ms ease, filter 110ms ease, box-shadow 110ms ease;
+      }
+
+      .action-button:hover {
+        filter: brightness(1.11);
+      }
+
+      .undo-button {
+        background: linear-gradient(145deg, #21855f, var(--green));
+        box-shadow: 0 8px 18px rgba(75, 213, 155, 0.16);
+      }
+
+      .half-button {
+        background: linear-gradient(145deg, #6745cb, var(--purple));
+        box-shadow: 0 8px 18px rgba(155, 120, 255, 0.16);
+      }
+
+      .reset-button {
+        background: linear-gradient(145deg, #bc3544, var(--red));
+        box-shadow: 0 8px 18px rgba(255, 93, 108, 0.16);
+      }
+
+      .history {
+        min-height: 111px;
+        max-height: 160px;
+        margin-top: 15px;
+        overflow-y: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: rgba(244, 248, 255, 0.9);
+        scrollbar-color: rgba(79, 108, 158, 0.3) transparent;
+      }
+
+      .history__title {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 10px 12px 8px;
+        border-bottom: 1px solid var(--line);
+        color: var(--text-muted);
+        background: rgba(248, 251, 255, 0.98);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.1em;
+      }
+
+      .entry {
+        position: relative;
+        padding: 9px 12px 9px 26px;
+        border-bottom: 1px solid rgba(49, 85, 145, 0.08);
+        color: #40506b;
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+
+      .entry::before {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        content: "";
+        background: var(--player-accent);
+        transform: translateY(-50%);
+        box-shadow: 0 0 10px var(--player-accent);
+      }
+
+      .entry:last-child {
+        border-bottom: 0;
+      }
+
+      .global-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        min-height: 50px;
+        padding: 0 22px;
+        border: 1px solid rgba(255, 93, 108, 0.32);
+        border-radius: 999px;
+        color: #fff;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.1), transparent),
+          rgba(170, 42, 58, 0.94);
+        box-shadow: 0 14px 30px rgba(190, 48, 65, 0.22);
+        cursor: pointer;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        transition: transform 110ms ease, filter 110ms ease;
+      }
+
+      .global-reset:hover {
+        filter: brightness(1.1);
+      }
+
+      .instructions {
+        overflow: hidden;
+        max-width: 780px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.98), transparent 50%),
+          rgba(255, 255, 255, 0.92);
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(14px);
+      }
+
+      .instructions__header {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(49, 85, 145, 0.035);
+      }
+
+      .instructions__icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid rgba(241, 199, 91, 0.25);
+        border-radius: 11px;
+        color: var(--gold-soft);
+        background: rgba(241, 199, 91, 0.14);
+        font-weight: 900;
+      }
+
+      .instructions h3 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.04em;
+      }
+
+      .instructions__body {
+        padding: 18px 22px 20px;
+      }
+
+      .instructions ul {
+        margin: 0;
+        padding-left: 1.25em;
+      }
+
+      .instructions ul ul {
+        margin-top: 8px;
+      }
+
+      .instructions li {
+        margin-bottom: 8px;
+        color: #4e5f7d;
+        font-size: 0.88rem;
+        line-height: 1.72;
+      }
+
+      .instructions li::marker {
+        color: var(--gold);
+      }
+    }
+
+    @layer states {
+      .sign-button.active {
+        border-color: rgba(255, 205, 119, 0.66);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent),
+          linear-gradient(145deg, #d66b15, var(--orange));
+        box-shadow:
+          0 0 0 2px rgba(255, 159, 67, 0.15),
+          0 10px 22px rgba(255, 118, 26, 0.2);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto;
+          transition-duration: 0.01ms;
+          animation-duration: 0.01ms;
+          animation-iteration-count: 1;
+        }
+      }
+    }
+
+    @layer responsive {
+      @media (max-width: 780px) {
+        body {
+          padding-inline: 12px;
+        }
+
+        .hero {
+          margin-bottom: 18px;
+        }
+
+        .hero p {
+          font-size: 0.86rem;
+        }
+
+        .players {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .player {
+          padding: 16px;
+          border-radius: 22px;
+        }
+
+        .life {
+          font-size: clamp(3.7rem, 18vw, 5.2rem);
+        }
+
+        .key {
+          min-height: 62px;
+          font-size: 1.45rem;
+        }
+
+        .history {
+          min-height: 90px;
+          max-height: 130px;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .hero__eyebrow {
+          font-size: 0.68rem;
+        }
+
+        .hero h1 {
+          font-size: 1.55rem;
+        }
+
+        .player__label {
+          display: none;
+        }
+
+        .actions {
+          gap: 6px;
+        }
+
+        .action-button {
+          font-size: 0.74rem;
+        }
+
+        .instructions__body {
+          padding-inline: 18px;
+        }
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <p class="hero__eyebrow">DUEL LIFE COUNTER</p>
+      <h1>遊戯王ライフ計算機</h1>
+      <p>数字を入力するだけで、デュエル中のライフ計算を素早く記録できます。</p>
+    </header>
+
+    <section class="players" id="playersArea" aria-label="プレイヤー別ライフ計算"></section>
+
+    <div class="global-actions">
+      <button type="button" class="global-reset" onclick="resetLife2()">
+        <span aria-hidden="true">↻</span>
+        両者リセット
+      </button>
+    </div>
+
+    <section class="instructions" aria-labelledby="instructionsTitle">
+      <div class="instructions__header">
+        <span class="instructions__icon" aria-hidden="true">?</span>
+        <h3 id="instructionsTitle">操作方法</h3>
+      </div>
+      <div class="instructions__body">
+        <ul>
+          <li>数字を2桁入力すると「-XX00」のようにライフが減ります。</li>
+          <li>先に「+」ボタンを押すと加算モードになります（例：<code>+12</code> → <code>+1200</code>）。</li>
+          <li>
+            「0」で始まる入力は桁を指定します。
+            <ul>
+              <li><code>08</code> → <code>-800</code></li>
+              <li><code>004</code> → <code>-40</code></li>
+              <li><code>0003</code> → <code>-3</code></li>
+            </ul>
+          </li>
+          <li>「←」ボタンで入力を1桁ずつ削除できます。</li>
+          <li>「半減」はライフを半分にし、小数点以下を切り上げます。</li>
+          <li>「1つ戻す」で直前の操作を取り消せます。</li>
+          <li>各プレイヤーの「リセット」は確認後、ライフを8000に戻します。</li>
+          <li>「両者リセット」は確認なしで、両方のライフを8000に戻します。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const makePlayerHTML = (p) => `
+      <article class="player player--${p}" id="p${p}">
+        <header class="player__header">
+          <h2 class="player__title">
+            <span class="player__badge">${p}</span>
+            プレイヤー${p}
+          </h2>
+          <span class="player__label">LIFE POINT</span>
+        </header>
+
+        <div class="life-wrap" aria-live="polite">
+          <div class="life-caption">LP</div>
+          <div class="life" id="life${p}">8000</div>
+        </div>
+
+        <div class="display" aria-label="入力中の値">
+          <span class="display__value" id="input${p}">-</span>
+          <button
+            type="button"
+            onclick="backspace(${p})"
+            class="backspace"
+            aria-label="入力を1桁削除"
+            title="入力を1桁削除"
+          >←</button>
+        </div>
+
+        <div class="buttons" aria-label="数値入力">
+          ${[1, 2, 3, 4, 5, 6, 7, 8, 9]
+            .map((n) => `<button type="button" class="key" onclick="inputDigit(${n}, ${p})">${n}</button>`)
+            .join("")}
+          <button
+            type="button"
+            class="key sign-button"
+            onclick="setSign('-', ${p})"
+            id="minusBtn${p}"
+            aria-label="減算モード"
+          >−</button>
+          <button type="button" class="key" onclick="inputDigit(0, ${p})">0</button>
+          <button
+            type="button"
+            class="key sign-button"
+            onclick="setSign('+', ${p})"
+            id="plusBtn${p}"
+            aria-label="加算モード"
+          >＋</button>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="action-button undo-button" onclick="undo(${p})">1つ戻す</button>
+          <button type="button" class="action-button half-button" onclick="halfLife(${p})">半減</button>
+          <button type="button" class="action-button reset-button" onclick="resetLife(${p})">リセット</button>
+        </div>
+
+        <div class="history" id="history${p}" aria-label="プレイヤー${p}の履歴">
+          <div class="history__title">操作履歴</div>
+        </div>
+      </article>
+    `;
+
+    document.getElementById("playersArea").innerHTML =
+      makePlayerHTML(1) + makePlayerHTML(2);
+  </script>
+
+  <script>
+    const players = {
+      1: { life: 8000, input: "", sign: "-", history: [] },
+      2: { life: 8000, input: "", sign: "-", history: [] }
+    };
+
+    function updateDisplays(p) {
+      document.getElementById(`life${p}`).textContent =
+        players[p].life.toLocaleString("ja-JP");
+
+      document.getElementById(`input${p}`).textContent =
+        (players[p].sign || "-") + (players[p].input || "");
+
+      document
+        .getElementById(`minusBtn${p}`)
+        .classList.toggle("active", players[p].sign === "-");
+
+      document
+        .getElementById(`plusBtn${p}`)
+        .classList.toggle("active", players[p].sign === "+");
+    }
+
+    function inputDigit(n, p) {
+      const pl = players[p];
+      if (pl.input.length >= 4) return;
+
+      pl.input += n;
+      updateDisplays(p);
+
+      const digits = pl.input;
+      const len = digits.length;
+
+      // 桁指定だけの入力は未確定として継続します。
+      if (digits === "00" || digits === "000") return;
+
+      if (len >= 2) {
+        let value = 0;
+
+        if (len === 2 && digits.startsWith("0")) {
+          value = parseInt(digits[1], 10) * 100;
+        } else if (len === 3 && digits.startsWith("00")) {
+          value = parseInt(digits[2], 10) * 10;
+        } else if (len === 4 && digits.startsWith("000")) {
+          value = parseInt(digits[3], 10);
+        } else {
+          value = parseInt(digits, 10) * 100;
+        }
+
+        const delta = pl.sign === "-" ? -value : value;
+
+        pl.history.push({ delta, before: pl.life });
+        pl.life += delta;
+        pl.input = "";
+        pl.sign = "-";
+
+        updateDisplays(p);
+        addHistoryEntry(p, delta);
+      }
+    }
+
+    function setSign(sign, p) {
+      players[p].sign = sign;
+      updateDisplays(p);
+    }
+
+    function backspace(p) {
+      const pl = players[p];
+
+      if (pl.input.length > 0) {
+        pl.input = pl.input.slice(0, -1);
+        updateDisplays(p);
+      }
+    }
+
+    function resetLife(p) {
+      if (!confirm("リセットしますか？")) return;
+
+      const pl = players[p];
+      const before = pl.life;
+
+      pl.life = 8000;
+      pl.input = "";
+      pl.sign = "-";
+      pl.history = [];
+      pl.history.push({ delta: 8000 - before, before });
+
+      document.getElementById(`history${p}`).innerHTML =
+        '<div class="history__title">操作履歴</div>';
+
+      updateDisplays(p);
+    }
+
+    function resetLife2() {
+      [1, 2].forEach((p) => {
+        const pl = players[p];
+        const before = pl.life;
+
+        pl.life = 8000;
+        pl.input = "";
+        pl.sign = "-";
+        pl.history = [];
+        pl.history.push({ delta: 8000 - before, before });
+
+        document.getElementById(`history${p}`).innerHTML =
+          '<div class="history__title">操作履歴</div>';
+
+        updateDisplays(p);
+      });
+    }
+
+    function undo(p) {
+      const history = players[p].history;
+      if (history.length === 0) return;
+
+      const last = history.pop();
+      players[p].life = last.before;
+      updateDisplays(p);
+
+      const historyElement = document.getElementById(`history${p}`);
+      const entries = historyElement.querySelectorAll(".entry");
+
+      if (entries.length > 0) {
+        entries[0].remove();
+      }
+    }
+
+    function halfLife(p) {
+      const pl = players[p];
+      const before = pl.life;
+      const half = Math.ceil(before / 2);
+      const delta = half - before;
+
+      pl.history.push({ delta, before });
+      pl.life = half;
+
+      updateDisplays(p);
+      addHistoryEntry(p, delta, true);
+    }
+
+    function addHistoryEntry(p, delta, isHalf = false) {
+      const div = document.createElement("div");
+      div.className = "entry";
+      div.textContent = isHalf
+        ? `半減 → ${players[p].life.toLocaleString("ja-JP")}`
+        : `変更: ${delta > 0 ? "+" : ""}${delta.toLocaleString("ja-JP")} → 現在: ${players[p].life.toLocaleString("ja-JP")}`;
+
+      const historyElement = document.getElementById(`history${p}`);
+      const title = historyElement.querySelector(".history__title");
+      title.insertAdjacentElement("afterend", div);
+    }
+
+    updateDisplays(1);
+    updateDisplays(2);
+  </script>
+</body>
+</html>
